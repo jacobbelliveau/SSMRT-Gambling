@@ -1,0 +1,8 @@
+project:
+  title: "SSMRT Gambling"
+  render: 
+    - SSMRT Gambling.qmd
+  post-render: 
+    - postExe.R
+editor: visual
+
