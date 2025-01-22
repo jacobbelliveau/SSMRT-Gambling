@@ -300,11 +300,10 @@ SL.check <- function(df, vars, new_col, ignore.na = TRUE, ignore.value = c(), ig
 df <- SL.check(df, c("gmq1", "gmq15"), "SL_gmq", ignore.vars = c("attncheck_gmq"))
 df <- SL.check(df, c("pbss_1", "pbss_16"), "SL_pbss")
 df <- SL.check(df, c("pgsi_1", "pgsi_9"), "SL_pgsi")
-df <- SL.check(df, c("crismgamb13", "crismgamb27"), "SL_exp")
 
 # Add a new column called "SL.total" to the data frame
 first_SL <- which(colnames(df) == "SL_gmq")
-last_SL <- which(colnames(df) == "SL_exp")
+last_SL <- which(colnames(df) == "SL_pgsi")
 
 df$SL_total <- rowSums(df[first_SL:last_SL])
 
