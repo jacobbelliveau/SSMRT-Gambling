@@ -348,6 +348,7 @@ df$exclude[
   # catching those who didn't make it to the end
   | is.na(df$exittime)
   | df$manual == 1
+  | df$withdraw_data___1 == 1
 ] <- 1
 
 # excluding for quotas
@@ -395,6 +396,27 @@ quota_table_gs <- rename(quota_table_gs, Province = province_label)
 
 ```
 
+```{r reason}
+
+EXCLUSION_REASONS <- subset(df, select = c(record_id, dqtime, exittime, starttime, withdraw_data___1, region, speeder:quota_exclude))
+
+EXCLUSION_REASONS$reason <- "Not excluded"
+EXCLUSION_REASONS$reason[EXCLUSION_REASONS$exclude == 1] <- "Failed quality checks"
+EXCLUSION_REASONS$reason[EXCLUSION_REASONS$quota_exclude != 
+                           EXCLUSION_REASONS$exclude] <- "Missing tracking number"
+EXCLUSION_REASONS$reason[is.na(EXCLUSION_REASONS$starttime) | 
+                           is.na(EXCLUSION_REASONS$exittime)] <- "DNF"
+EXCLUSION_REASONS$reason[EXCLUSION_REASONS$withdraw_data___1 == 1] <- "Withdrawal request"
+EXCLUSION_REASONS$reason[!is.na(EXCLUSION_REASONS$dqtime)] <- "Screenout"
+EXCLUSION_REASONS$reason[EXCLUSION_REASONS$region != "Nova Scotia" & 
+                           !is.na(EXCLUSION_REASONS$region)] <- "Not Nova Scotian"
+
+EXCLUSION_REASONS <- subset(EXCLUSION_REASONS, select = c(record_id, reason))
+
+EXCLUSION_REASONS_TABLE <- pivot_wider(summarise(group_by(EXCLUSION_REASONS, reason), N = n()), names_from = reason, values_from = N, values_fill = list(N = 0))
+
+```
+
 ```{r gsheets}
 
 if (exists("USER_EMAIL") & exists("DOC_ID")) {
@@ -416,7 +438,9 @@ if (exists("USER_EMAIL") & exists("DOC_ID")) {
 ## Saving location data
 write.xlsx(list("IP" = IPS,
                 "Location" = LOCATIONS,
-                "Manual decisions" = MANUAL
+                "Manual decisions" = MANUAL,
+                "Quota exclusion reasons" = EXCLUSION_REASONS,
+                "Quota exclusions summary" = EXCLUSION_REASONS_TABLE
                 ), "SSMRT Gambling Participant Info.xlsx", 
            rowNames = FALSE)
 
