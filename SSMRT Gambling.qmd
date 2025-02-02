@@ -398,7 +398,7 @@ quota_table_gs <- rename(quota_table_gs, Province = province_label)
 
 ```{r reason}
 
-EXCLUSION_REASONS <- subset(df, select = c(record_id, dqtime, exittime, starttime, withdraw_data___1, region, speeder:quota_exclude))
+EXCLUSION_REASONS <- subset(df, select = c(record_id, sr, dqtime, exittime, starttime, withdraw_data___1, region, speeder:quota_exclude))
 
 EXCLUSION_REASONS$reason <- "Not excluded"
 EXCLUSION_REASONS$reason[EXCLUSION_REASONS$exclude == 1] <- "Failed quality checks"
@@ -411,7 +411,7 @@ EXCLUSION_REASONS$reason[!is.na(EXCLUSION_REASONS$dqtime)] <- "Screenout"
 EXCLUSION_REASONS$reason[EXCLUSION_REASONS$region != "Nova Scotia" & 
                            !is.na(EXCLUSION_REASONS$region)] <- "Not Nova Scotian"
 
-EXCLUSION_REASONS <- subset(EXCLUSION_REASONS, select = c(record_id, reason))
+EXCLUSION_REASONS <- subset(EXCLUSION_REASONS, select = c(record_id, sr, reason))
 
 EXCLUSION_REASONS_TABLE <- pivot_wider(summarise(group_by(EXCLUSION_REASONS, reason), N = n()), names_from = reason, values_from = N, values_fill = list(N = 0))
 
