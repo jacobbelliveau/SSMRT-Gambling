@@ -398,12 +398,12 @@ quota_table_gs <- rename(quota_table_gs, Province = province_label)
 
 ```{r reason}
 
-EXCLUSION_REASONS <- subset(df, select = c(record_id, sr, dqtime, exittime, starttime, withdraw_data___1, region, speeder:quota_exclude))
+EXCLUSION_REASONS <- subset(df, select = c(record_id, sr, gender, dqtime, exittime, starttime, withdraw_data___1, region, speeder:quota_exclude))
 
 EXCLUSION_REASONS$reason <- "Not excluded"
 EXCLUSION_REASONS$reason[EXCLUSION_REASONS$exclude == 1] <- "Failed quality checks"
-EXCLUSION_REASONS$reason[EXCLUSION_REASONS$quota_exclude != 
-                           EXCLUSION_REASONS$exclude] <- "Missing tracking number"
+EXCLUSION_REASONS$reason[is.na(EXCLUSION_REASONS$sr)] <- "Missing tracking number"
+EXCLUSION_REASONS$reason[EXCLUSION_REASONS$gender %in% c(3,4,5)] <- "Failed quality checks"
 EXCLUSION_REASONS$reason[is.na(EXCLUSION_REASONS$starttime) | 
                            is.na(EXCLUSION_REASONS$exittime)] <- "DNF"
 EXCLUSION_REASONS$reason[EXCLUSION_REASONS$withdraw_data___1 == 1] <- "Withdrawal request"
