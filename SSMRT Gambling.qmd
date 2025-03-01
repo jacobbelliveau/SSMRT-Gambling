@@ -364,6 +364,40 @@ df$exclude[
 ] <- 1
 ```
 
+# Scale scoring
+
+Calculates summary scores for scales in the dataset.
+
+```{r scores}
+
+## PNCQ
+#pncq_vars <- names(select(df, matches("pncq_\\d")))
+
+#df$pncq_total <- rowSums(select(df, all_of(pncq_vars)), na.rm = FALSE)
+
+## pgsi
+pgsi_vars <- names(select(df, matches("pgsi_\\d")))
+
+df$pgsi_total <- rowSums(select(df, all_of(pgsi_vars)), na.rm = FALSE)
+
+## GMQ
+gmq_vars <- names(select(df, matches("gmq\\d")))
+
+gmq_enh <- gmq_vars[c(3,6,9,12,15)]
+gmq_soc <- gmq_vars[c(1,4,7,10,13)]
+gmq_cop <- gmq_vars[c(2,5,8,11,14)]
+
+df$gmq_enh_total <- rowSums(select(df, all_of(gmq_enh)), na.rm = FALSE)
+df$gmq_soc_total <- rowSums(select(df, all_of(gmq_soc)), na.rm = FALSE)
+df$gmq_cop_total <- rowSums(select(df, all_of(gmq_cop)), na.rm = FALSE)
+
+## PBSS
+pbss_vars <- names(select(df, matches("pbss_\\d")))
+
+df$pbss_total <- rowSums(select(df, all_of(pbss_vars)), na.rm = FALSE)
+
+```
+
 # Quota tables
 
 Creates and publishes quota tables to Google Sheets.
