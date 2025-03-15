@@ -6,3 +6,6 @@ keys.R
 output
 SSMRT Gambling Participant Info.xlsx
 /.quarto/
+keys
+.Renviron
+SSMRT GA Data.csv
