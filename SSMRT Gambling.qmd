@@ -396,6 +396,95 @@ pbss_vars <- names(select(df, matches("pbss_\\d")))
 
 df$pbss_total <- rowSums(select(df, all_of(pbss_vars)), na.rm = FALSE)
 
+rm(gmq_cop, gmq_soc, gmq_enh, gmq_vars, pbss_vars, pgsi_vars)
+
+```
+
+# Google Analytics
+
+Fetches data from the Google Analytics API.
+
+```{r ga_data}
+
+GA_DATA <- read.csv("SSMRT GA Data.csv")
+
+if (exists("GA_TOKEN")) {
+  library(googleAnalyticsR)
+  library(googleAuthR)
+  library(dplyr)
+  
+  # note to future self/selves: before the code below will work, you will need to authenticate manually first. i used ga_auth_setup using json files that i fetch from the GA website.
+  
+  # authenticating
+  ga_auth(token = GA_TOKEN, email = GA_EMAIL)
+  
+  #meta <- ga_meta("data", propertyId = GA_TOKEN)
+
+  # formatting starttime to POSIX
+  df$ga_starttime <- strptime(df$starttime, format = "%Y-%m-%d %H:%M:%S")
+  # removing the time, leaving only date
+  df$ga_starttime <- round_date(df$ga_starttime, "day")
+  
+  # finding missing tokens from the DF
+  ga_missing <- df$generated_token[!(df$generated_token %in% GA_DATA$generated_token) & df$exclude == 0 & !is.na(df$generated_token)]
+  
+  # appending those to GA_DATA
+  GA_DATA <- rbind(GA_DATA, data.frame(generated_token = ga_missing, 
+                                       first_visit = NA, 
+                                       page_view = NA, 
+                                       screen_view = NA, 
+                                       session_start = NA, 
+                                       user_engagement = NA, 
+                                       UserEngagementDuration = NA))
+
+  for (TOKEN in ga_missing) {
+    filter <- ga_data_filter("customUser:current_user"==TOKEN)
+    # first day boundary
+    D1 <- df$ga_starttime[df$generated_token == TOKEN & !is.na(df$generated_token)] - ddays(1)
+    # second day boundary
+    D2 <- D1 + ddays(2)
+    
+    dat <- try(ga_data(
+      propertyId = 330608169,
+      metrics = c("eventCount", "userEngagementDuration"),
+      date_range = c(D1, D2),
+      dimensions = c("customUser:current_user", "eventName"),
+      dim_filters = filter,
+      limit = -1
+    ))
+    
+    if (exists("dat") & all(class(dat) != "try-error")) {
+      duration <- sum(as.numeric(dat$userEngagementDuration))
+      GA_DATA$UserEngagementDuration[GA_DATA$generated_token == TOKEN] <- duration
+
+      if ("first_visit" %in% dat$eventName) {
+        FV <- dat$eventCount[dat$eventName == "first_visit"]
+        GA_DATA$first_visit[GA_DATA$generated_token == TOKEN] <- FV}
+
+      if ("page_view" %in% dat$eventName) {
+        PV <- dat$eventCount[dat$eventName == "page_view"]
+        GA_DATA$page_view[GA_DATA$generated_token == TOKEN] <- PV}
+
+      if ("screen_view" %in% dat$eventName) {
+        SV <- dat$eventCount[dat$eventName == "screen_view"]
+        GA_DATA$screen_view[GA_DATA$generated_token == TOKEN] <- SV}
+
+      if ("session_start" %in% dat$eventName) {
+        SS <- dat$eventCount[dat$eventName == "session_start"]
+        GA_DATA$session_start[GA_DATA$generated_token == TOKEN] <- SS}
+
+      if ("user_engagement" %in% dat$eventName) {
+        UE <- dat$eventCount[dat$eventName == "user_engagement"]
+        GA_DATA$user_engagement[GA_DATA$generated_token == TOKEN] <- UE}
+
+      suppressWarnings(rm(FV, PV, SS, SV, UE, duration, GA_TOKEN, D1, D2, filter, TOKEN))
+    }
+  }
+}
+
+df <- left_join(df, GA_DATA, by = "generated_token")
+write.csv(GA_DATA, "SSMRT GA Data.csv", row.names = FALSE)
+
 ```
 
 # Quota tables
