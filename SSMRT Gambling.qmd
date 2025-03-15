@@ -482,6 +482,7 @@ if (exists("GA_TOKEN")) {
   }
 }
 
+df$ga_starttime <- NULL
 df <- left_join(df, GA_DATA, by = "generated_token")
 write.csv(GA_DATA, "SSMRT GA Data.csv", row.names = FALSE)
 
