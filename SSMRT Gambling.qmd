@@ -418,7 +418,10 @@ if (exists("GA_TOKEN")) {
   df$ga_starttime <- round_date(df$ga_starttime, "day")
   
   # finding missing tokens from the DF
-  ga_missing <- df$generated_token[!(df$generated_token %in% GA_DATA$generated_token) & df$exclude == 0 & !is.na(df$generated_token)]
+  ga_missing <- df$generated_token[
+    !(df$generated_token %in% GA_DATA$generated_token) 
+    & df$exclude == 0 & !is.na(df$generated_token)
+    & df$ga_starttime <= Sys.Date()+2]
   
   if (length(ga_missing) > 0){
       # appending those to GA_DATA
