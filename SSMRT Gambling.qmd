@@ -193,13 +193,6 @@ rm(cutoff)
 
 # Inconsistency checks
 
-```{r tensincon}
-
-df$incon_tens <- 0
-df$incon_tens[df$attncheck_tens2 %in% c(1,2,4,5)] <- 1
-
-```
-
 ```{r iosincon}
 
 df$incon_ios <- 0
@@ -335,7 +328,6 @@ df$manual[df$record_id %in% MANUAL$record_id] <- 1
 df$exclude <- 0
 df$exclude[
     df$speeder == 1
-  | df$incon_tens == 1
   | df$incon_gmq == 1
   | df$incon_ios == 1
   | df$incon_age == 1
@@ -428,14 +420,16 @@ if (exists("GA_TOKEN")) {
   # finding missing tokens from the DF
   ga_missing <- df$generated_token[!(df$generated_token %in% GA_DATA$generated_token) & df$exclude == 0 & !is.na(df$generated_token)]
   
-  # appending those to GA_DATA
-  GA_DATA <- rbind(GA_DATA, data.frame(generated_token = ga_missing, 
-                                       first_visit = NA, 
-                                       page_view = NA, 
-                                       screen_view = NA, 
-                                       session_start = NA, 
-                                       user_engagement = NA, 
-                                       UserEngagementDuration = NA))
+  if (length(ga_missing) > 0){
+      # appending those to GA_DATA
+      GA_DATA <- rbind(GA_DATA, data.frame(generated_token = ga_missing, 
+                                           first_visit = NA, 
+                                           page_view = NA, 
+                                           screen_view = NA, 
+                                           session_start = NA, 
+                                           user_engagement = NA, 
+                                           UserEngagementDuration = NA))
+  }
 
   for (TOKEN in ga_missing) {
     filter <- ga_data_filter("customUser:current_user"==TOKEN)
