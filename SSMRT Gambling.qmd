@@ -53,6 +53,11 @@ if (exists("REDCAP_URI") & exists("REDCAP_TOKEN")) {
   df <- redcap_read_oneshot(REDCAP_URI, REDCAP_TOKEN)$data
   rm(REDCAP_TOKEN, REDCAP_URI)
   
+  # removing newline characters; breaks SPSS imports
+  
+  df[] <- lapply(df, function(x) {
+  if (is.character(x)) gsub("[\r\n]+", " ", x) else x})
+  
   RAW_DATA <- df
   
 }
